@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IoT Heartbeat Monitoring &amp; Stimulation Response System</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <h1>IoT-Based Heartbeat Monitoring &amp; Stimulation Response System</h1>
+  <p class="sub">Educational software simulation &mdash; not a medical device. Thresholds are demo values only.</p>
+</header>
+
+<main>
+  <section class="card big" id="current">
+    <h2>Current BPM</h2>
+    <div class="bpm"><span id="bpmValue">--</span><small> BPM</small></div>
+    <div id="statusBadge" class="badge none">NO DATA</div>
+    <div id="lastTime" class="muted">Waiting for readings...</div>
+  </section>
+
+  <section class="card" id="stats">
+    <h2>Statistics</h2>
+    <table>
+      <tr><td>Total readings</td><td id="sTotal">0</td></tr>
+      <tr><td>Average BPM</td><td id="sAvg">--</td></tr>
+      <tr><td>Min / Max</td><td id="sMinMax">-- / --</td></tr>
+      <tr><td>Normal</td><td id="sNormal">0</td></tr>
+      <tr><td>Warning</td><td id="sWarning">0</td></tr>
+      <tr><td>Critical</td><td id="sCritical">0</td></tr>
+      <tr><td>Alerts raised</td><td id="sAlerts">0</td></tr>
+    </table>
+  </section>
+
+  <section class="card wide">
+    <h2>Heartbeat History (last 40 readings)</h2>
+    <canvas id="chart" width="900" height="280"></canvas>
+    <p class="muted">Green band = demo normal range ({{ cfg.NORMAL_LOW }}&ndash;{{ cfg.NORMAL_HIGH }} BPM).
+      Dot colour = status.</p>
+  </section>
+
+  <section class="card">
+    <h2>Controls</h2>
+    <label for="manualBpm">Manual BPM input</label>
+    <div class="row">
+      <input id="manualBpm" type="number" min="{{ cfg.BPM_MIN_VALID }}" max="{{ cfg.BPM_MAX_VALID }}" placeholder="e.g. 72">
+      <button id="btnManual">Send</button>
+    </div>
+    <div id="formMsg" class="msg"></div>
+
+    <label for="mode">Simulator mode</label>
+    <select id="mode">
+      <option value="mixed">Mixed (mostly normal, some spikes)</option>
+      <option value="normal">Normal</option>
+      <option value="tachycardia">High (tachycardia-like)</option>
+      <option value="bradycardia">Low (bradycardia-like)</option>
+    </select>
+    <div class="row">
+      <button id="btnOne">One reading</button>
+      <button id="btnStart" class="green">Start auto</button>
+      <button id="btnStop" class="red">Stop</button>
+    </div>
+    <div id="simState" class="muted">Auto simulator: stopped</div>
+    <button id="btnClear" class="ghost">Clear all data</button>
+  </section>
+
+  <section class="card">
+    <h2>Simulated Response Panel</h2>
+    <div id="responsePanel" class="response idle">System idle. No abnormal reading yet.</div>
+    <p class="muted">Responses are text-only simulations. No hardware is controlled and no stimulation is delivered.</p>
+  </section>
+
+  <section class="card wide">
+    <h2>Alerts</h2>
+    <table id="alertTable">
+      <thead><tr><th>Time</th><th>Level</th><th>BPM</th><th>Message</th><th>Simulated response</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="card wide">
+    <h2>Recent Readings</h2>
+    <table id="readTable">
+      <thead><tr><th>#</th><th>Time</th><th>BPM</th><th>Status</th><th>Source</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>B.Tech CSE Individual Project &bull; Flask + SQLite + REST &bull; MQTT and cloud DB are future work</footer>
+<script>window.CFG = {low: {{ cfg.NORMAL_LOW }}, high: {{ cfg.NORMAL_HIGH }}};</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
