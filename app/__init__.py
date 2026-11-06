@@ -1,6 +1,21 @@
 import threading
 import time
+import logging
 from flask import Flask, jsonify, request, render_template
+
+def _send_mqtt_control(command):
+    # Send START/STOP to the virtual sensor process running in the same host.
+    try:
+        import paho.mqtt.publish as mqtt_publish
+        mqtt_publish.single(
+            'iot-heartbeat-demo-2026-11-06-7f3a91/virtual-bpm/control',
+            payload=command, hostname='broker.hivemq.com', port=1883,
+            client_id='heartbeat-dashboard-control'
+        )
+        return True
+    except Exception as exc:
+        logging.getLogger(__name__).warning('Could not send MQTT %s command: %s', command, exc)
+        return False
 
 from . import config as C
 from . import database as db
@@ -124,15 +139,17 @@ def create_app():
         if mode not in MODES:
             return error(f"mode must be one of {list(MODES)}")
         _sim["mode"] = mode
+        mqtt_ok = _send_mqtt_control("START")
         if not _sim["running"]:
             _sim["running"] = True
             threading.Thread(target=_sim_loop, args=(app,), daemon=True).start()
-        return jsonify({"running": True, "mode": mode})
+        return jsonify({"running": True, "mode": mode, "mqtt_sensor_command_sent": mqtt_ok})
 
     @app.post("/api/simulate/stop")
     def sim_stop():
         _sim["running"] = False
-        return jsonify({"running": False})
+        mqtt_ok = _send_mqtt_control("STOP")
+        return jsonify({"running": False, "mqtt_sensor_command_sent": mqtt_ok})
 
     @app.get("/api/simulate/status")
     def sim_status():
